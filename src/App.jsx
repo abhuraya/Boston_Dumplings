@@ -1,10 +1,14 @@
 import './App.css'
-import Landing from './components/Landing'
-
+import Navbar from './components/Navbar';
+import { Outlet } from 'react-router-dom';
 function App() {
 
-  return (
-    <Landing/>
+  return(
+    <>
+        <Navbar />
+        <Outlet />
+    </>
+
 
   )
 }
