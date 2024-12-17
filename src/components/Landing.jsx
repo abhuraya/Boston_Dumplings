@@ -1,4 +1,4 @@
-export default function Landing{
+export default function Landing(){
     return(
         <div>
             <h6>Namaste MOM!!!</h6>
