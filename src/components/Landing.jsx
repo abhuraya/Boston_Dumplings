@@ -4,10 +4,9 @@ export default function Landing(){
     const [count, setCount] = useState(0);
     return(
         <div>
+            <div class='header'>
             <h1>Welcome to Boston Dumplings</h1>
-            <button onClick={() => setCount((count) => count + 1)}>
-                count is {count}
-            </button>
+            </div>
             <form action="" method='post'>
                 <div class='nameInput'>
                     <label htmlFor="name">Enter your name: </label>
