@@ -7,6 +7,7 @@ import {
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
+import OrderConfirmation from "./pages/OrderConfirmation.jsx";
 
 import App from "./App.jsx";
 import Landing from "./pages/Landing.jsx";
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
       {
         path: "checkout",
         element: <Checkout />,
+      },
+      {
+        path: "order-confirmation",
+        element: <OrderConfirmation />,
       },
     ],
   },
