@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link,
+        useNavigate,
+         useOutletContext } from "react-router-dom";
 
 export default function Checkout() {
   const { cartItems, clearCart } = useOutletContext();
+  const navigate = useNavigate();
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -14,7 +17,6 @@ export default function Checkout() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [orderComplete, setOrderComplete] = useState(false);
 
   const total = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -60,35 +62,21 @@ export default function Checkout() {
       );
     }
 
-    setMessage("Your order was submitted successfully.");
-    setOrderComplete(true);
-    clearCart();
+      const customerName = customer.name;
+
+      clearCart();
+
+      navigate("/order-confirmation", {
+        replace: true,
+        state: {
+          customerName,
+        },
+      });
   } catch (error) {
     setMessage(error.message);
   } finally {
     setIsSubmitting(false);
   }
-}
-
-  if (orderComplete) {
-  return (
-    <main className="container py-5 text-center">
-      <div className="card border-0 shadow-sm mx-auto" style={{ maxWidth: "600px" }}>
-        <div className="card-body p-5">
-          <h1 className="h2 mb-3">Order confirmed!</h1>
-
-          <p className="text-muted mb-4">
-            Your order was submitted successfully. Check your email for
-            confirmation.
-          </p>
-
-          <Link to="/" className="btn btn-success">
-            Return to menu
-          </Link>
-        </div>
-      </div>
-    </main>
-  );
 }
 
 
@@ -194,13 +182,8 @@ export default function Checkout() {
                     onChange={handleChange}
                   />
                 </div>
-                {message && (
-                  <div
-                    className={`alert ${
-                      orderComplete ? "alert-success" : "alert-danger"
-                    }`}
-                    role="alert"
-                  >
+              {message && (
+                  <div className="alert alert-danger" role="alert">
                     {message}
                   </div>
                 )}
