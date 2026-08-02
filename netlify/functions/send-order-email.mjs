@@ -1,20 +1,17 @@
 import nodemailer from "nodemailer";
 
-export default async function handler(request) {
-  if (request.method !== "POST") {
-    return new Response(
-      JSON.stringify({ message: "Method not allowed" }),
-      {
-        status: 405,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+export const handler = async (event) => {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({
+        message: "Method not allowed.",
+      }),
+    };
   }
 
   try {
-    const { customer, items, total } = await request.json();
+    const { customer, items, total } = JSON.parse(event.body || "{}");
 
     if (
       !customer?.name ||
@@ -24,18 +21,22 @@ export default async function handler(request) {
       !Array.isArray(items) ||
       items.length === 0
     ) {
-      return new Response(
-        JSON.stringify({
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
           message: "Missing required order information.",
         }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      };
     }
+
+    console.log("Email configuration:", {
+      hasHost: Boolean(process.env.EMAIL_HOST),
+      hasPort: Boolean(process.env.EMAIL_PORT),
+      hasUser: Boolean(process.env.EMAIL_USER),
+      hasPassword: Boolean(process.env.EMAIL_PASSWORD),
+      emailFrom: process.env.EMAIL_FROM,
+      storeEmail: process.env.STORE_EMAIL,
+    });
 
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
@@ -47,123 +48,103 @@ export default async function handler(request) {
       },
     });
 
+    await transporter.verify();
+    console.log("SMTP connection verified.");
+
     const itemLines = items
-      .map(
-        (item) =>
-          `${item.name} × ${item.quantity} — $${(
-            item.price * item.quantity
-          ).toFixed(2)}`
-      )
+      .map((item) => {
+        const itemTotal =
+          Number(item.price) * Number(item.quantity);
+
+        return `${item.name} × ${item.quantity} — $${itemTotal.toFixed(2)}`;
+      })
       .join("\n");
-
-    console.log("Email configuration:", {
-  emailUserExists: Boolean(process.env.EMAIL_USER),
-  emailPasswordExists: Boolean(process.env.EMAIL_PASSWORD),
-  emailFrom: process.env.EMAIL_FROM,
-  storeEmail: process.env.STORE_EMAIL,
-  });
-
-    const customerMessage = [
-      `Hi ${customer.name},`,
-      "",
-      "Thank you for your Boston Dumplings order.",
-      "",
-      itemLines,
-      "",
-      `Total: $${Number(total).toFixed(2)}`,
-      "",
-      `Delivery address: ${customer.address}`,
-      `Phone: ${customer.phone}`,
-      customer.notes
-        ? `Order notes: ${customer.notes}`
-        : "Order notes: None",
-      "",
-      "We will contact you with an order update.",
-      "",
-      "Boston Dumplings",
-    ].join("\n");
 
     const customerResult = await transporter.sendMail({
       from: `"Boston Dumplings" <${process.env.EMAIL_FROM}>`,
       to: customer.email,
       replyTo: process.env.STORE_EMAIL,
       subject: "Boston Dumplings order confirmation",
-      text: customerMessage,
+      text: [
+        `Hi ${customer.name},`,
+        "",
+        "Thank you for your Boston Dumplings order.",
+        "",
+        itemLines,
+        "",
+        `Total: $${Number(total).toFixed(2)}`,
+        `Delivery address: ${customer.address}`,
+        `Phone: ${customer.phone}`,
+        customer.notes
+          ? `Order notes: ${customer.notes}`
+          : "Order notes: None",
+        "",
+        "We will contact you with an order update.",
+        "",
+        "Boston Dumplings",
+      ].join("\n"),
     });
 
-    console.log("Customer email result:", {
-      messageId: customerResult.messageId,
+    console.log("Customer email:", {
       accepted: customerResult.accepted,
       rejected: customerResult.rejected,
       response: customerResult.response,
     });
 
-    const storeMessage = [
-      "A new order was submitted.",
-      "",
-      `Customer: ${customer.name}`,
-      `Email: ${customer.email}`,
-      `Phone: ${customer.phone}`,
-      `Address: ${customer.address}`,
-      customer.notes
-        ? `Notes: ${customer.notes}`
-        : "Notes: None",
-      "",
-      itemLines,
-      "",
-      `Total: $${Number(total).toFixed(2)}`,
-    ].join("\n");
+    const storeResult = await transporter.sendMail({
+      from: `"Boston Dumplings Website" <${process.env.EMAIL_FROM}>`,
+      to: process.env.STORE_EMAIL,
+      replyTo: customer.email,
+      subject: `New order from ${customer.name}`,
+      text: [
+        "A new order was submitted.",
+        "",
+        `Customer: ${customer.name}`,
+        `Email: ${customer.email}`,
+        `Phone: ${customer.phone}`,
+        `Address: ${customer.address}`,
+        customer.notes
+          ? `Notes: ${customer.notes}`
+          : "Notes: None",
+        "",
+        itemLines,
+        "",
+        `Total: $${Number(total).toFixed(2)}`,
+      ].join("\n"),
+    });
 
-      const storeResult = await transporter.sendMail({
-        from: `"Boston Dumplings Website" <${process.env.EMAIL_FROM}>`,
-        to: process.env.STORE_EMAIL,
-        replyTo: customer.email,
-        subject: `New order from ${customer.name}`,
-        text: storeMessage,
-      });
+    console.log("Store email:", {
+      accepted: storeResult.accepted,
+      rejected: storeResult.rejected,
+      response: storeResult.response,
+    });
 
-      console.log("Store email result:", {
-        messageId: storeResult.messageId,
-        accepted: storeResult.accepted,
-        rejected: storeResult.rejected,
-        response: storeResult.response,
-      });
+    if (
+      customerResult.accepted.length === 0 ||
+      storeResult.accepted.length === 0
+    ) {
+      throw new Error("One or more email recipients were rejected.");
+    }
 
-      await transporter.verify();
-      console.log("SMTP connection verified");
-
-      if (customerResult.accepted.length === 0) {
-        throw new Error("Customer email was not accepted by the mail server.");
-      }
-
-      if (storeResult.accepted.length === 0) {
-        throw new Error("Store email was not accepted by the mail server.");
-      }
-
-    return new Response(
-      JSON.stringify({
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
         message: "Order submitted successfully.",
       }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    };
   } catch (error) {
-    console.error("Order email error:", error);
+    console.error("Order email error:", {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response,
+    });
 
-    return new Response(
-      JSON.stringify({
-        message: "The order could not be submitted.",
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "The order could not be emailed. Please try again.",
       }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    };
   }
-}
+};

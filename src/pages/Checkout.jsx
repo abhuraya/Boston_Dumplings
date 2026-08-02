@@ -30,6 +30,27 @@ export default function Checkout() {
     }));
   }
 
+  if (orderComplete) {
+  return (
+    <main className="container py-5 text-center">
+      <div className="card border-0 shadow-sm mx-auto" style={{ maxWidth: "600px" }}>
+        <div className="card-body p-5">
+          <h1 className="h2 mb-3">Order confirmed!</h1>
+
+          <p className="text-muted mb-4">
+            Your order was submitted successfully. Check your email for
+            confirmation.
+          </p>
+
+          <Link to="/" className="btn btn-success">
+            Return to menu
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 async function handleSubmit(event) {
   event.preventDefault();
 
