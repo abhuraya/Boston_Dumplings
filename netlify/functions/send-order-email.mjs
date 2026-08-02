@@ -56,6 +56,13 @@ export default async function handler(request) {
       )
       .join("\n");
 
+    console.log("Email configuration:", {
+  emailUserExists: Boolean(process.env.EMAIL_USER),
+  emailPasswordExists: Boolean(process.env.EMAIL_PASSWORD),
+  emailFrom: process.env.EMAIL_FROM,
+  storeEmail: process.env.STORE_EMAIL,
+  });
+
     const customerMessage = [
       `Hi ${customer.name},`,
       "",
@@ -76,12 +83,19 @@ export default async function handler(request) {
       "Boston Dumplings",
     ].join("\n");
 
-    await transporter.sendMail({
+    const customerResult = await transporter.sendMail({
       from: `"Boston Dumplings" <${process.env.EMAIL_FROM}>`,
       to: customer.email,
       replyTo: process.env.STORE_EMAIL,
       subject: "Boston Dumplings order confirmation",
       text: customerMessage,
+    });
+
+    console.log("Customer email result:", {
+      messageId: customerResult.messageId,
+      accepted: customerResult.accepted,
+      rejected: customerResult.rejected,
+      response: customerResult.response,
     });
 
     const storeMessage = [
@@ -100,13 +114,31 @@ export default async function handler(request) {
       `Total: $${Number(total).toFixed(2)}`,
     ].join("\n");
 
-    await transporter.sendMail({
-      from: `"Boston Dumplings Website" <${process.env.EMAIL_FROM}>`,
-      to: process.env.STORE_EMAIL,
-      replyTo: customer.email,
-      subject: `New order from ${customer.name}`,
-      text: storeMessage,
-    });
+      const storeResult = await transporter.sendMail({
+        from: `"Boston Dumplings Website" <${process.env.EMAIL_FROM}>`,
+        to: process.env.STORE_EMAIL,
+        replyTo: customer.email,
+        subject: `New order from ${customer.name}`,
+        text: storeMessage,
+      });
+
+      console.log("Store email result:", {
+        messageId: storeResult.messageId,
+        accepted: storeResult.accepted,
+        rejected: storeResult.rejected,
+        response: storeResult.response,
+      });
+
+      await transporter.verify();
+      console.log("SMTP connection verified");
+
+      if (customerResult.accepted.length === 0) {
+        throw new Error("Customer email was not accepted by the mail server.");
+      }
+
+      if (storeResult.accepted.length === 0) {
+        throw new Error("Store email was not accepted by the mail server.");
+      }
 
     return new Response(
       JSON.stringify({
