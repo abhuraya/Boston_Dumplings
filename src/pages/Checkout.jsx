@@ -62,16 +62,19 @@ export default function Checkout() {
       );
     }
 
-      const customerName = customer.name;
-
-      clearCart();
-
       navigate("/order-confirmation", {
         replace: true,
         state: {
-          customerName,
+          customerName: customer.name,
+          email: customer.email,
+          items: cartItems,
+          total,
         },
       });
+
+      setTimeout(() => {
+        clearCart();
+      }, 0);
   } catch (error) {
     setMessage(error.message);
   } finally {
