@@ -1,9 +1,20 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import {
+  Link,
+  Outlet,
+  useNavigate,
+} from "react-router-dom";
 import "./App.css";
 
 function App() {
+  const navigate = useNavigate();
+
   const [cartItems, setCartItems] = useState([]);
+
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   function addToCart(product) {
     setCartItems((currentItems) => {
@@ -55,8 +66,50 @@ function App() {
     setCartItems([]);
   }
 
+  function signOut() {
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
+  }
+
   return (
     <div className="app-shell">
+      <nav className="navbar navbar-dark bg-danger">
+        <div className="container">
+          <Link className="navbar-brand fw-bold" to="/">
+            Boston Dumplings
+          </Link>
+
+          <div className="d-flex align-items-center gap-3">
+            {user ? (
+              <>
+                <span className="text-white">
+                  Welcome, {user.name}
+                </span>
+
+                <button
+                  type="button"
+                  className="btn btn-outline-light"
+                  onClick={signOut}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link className="btn btn-outline-light" to="/signin">
+                  Sign In
+                </Link>
+
+                <Link className="btn btn-light text-danger" to="/signup">
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
       <Outlet
         context={{
           cartItems,
@@ -65,6 +118,8 @@ function App() {
           decreaseQuantity,
           removeItem,
           clearCart,
+          user,
+          setUser,
         }}
       />
     </div>

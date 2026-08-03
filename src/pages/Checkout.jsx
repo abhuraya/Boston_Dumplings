@@ -4,14 +4,14 @@ import { Link,
          useOutletContext } from "react-router-dom";
 
 export default function Checkout() {
-  const { cartItems, clearCart } = useOutletContext();
+  const { cartItems, clearCart, user } = useOutletContext();
   const navigate = useNavigate();
 
   const [customer, setCustomer] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
     notes: "",
   });
 

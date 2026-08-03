@@ -1,7 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, 
+        useNavigate,
+      useOutletContext, 
+    } from "react-router-dom";
 
 function SignIn() {
+  const navigate = useNavigate();
+  const { setUser } = useOutletContext();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -16,11 +21,40 @@ function SignIn() {
     }));
   }
 
-  function handleSubmit(event) {
-    event.preventDefault();
+async function handleSubmit(event) {
+  event.preventDefault();
 
-    console.log("Sign-in form:", formData);
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || "Sign in failed.");
+      return;
+    }
+
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setUser(data.user);
+
+    alert(data.message);
+    navigate("/");
+    console.log("Signed-in user:", data.user);
+  } catch (error) {
+    console.error("Sign-in error:", error);
+    alert("Could not connect to the server.");
   }
+}
 
   return (
     <main className="container py-5">

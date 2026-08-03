@@ -1,10 +1,18 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { 
+  Link,
+  useNavigate,
+  useOutletContext,
+ } from "react-router-dom";
 
 function SignUp() {
+  const navigate = useNavigate();
+  const { setUser } = useOutletContext();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
+    address: "",
     password: "",
     confirmPassword: "",
   });
@@ -20,17 +28,48 @@ function SignUp() {
     }));
   }
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    setError("");
+async function handleSubmit(event) {
+  event.preventDefault();
+  setError("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("The passwords do not match.");
+  if (formData.password !== formData.confirmPassword) {
+    setError("The passwords do not match.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/auth/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setError(data.message || "Account creation failed.");
       return;
     }
 
-    console.log("Registration form:", formData);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    setUser(data.user);
+
+    alert(data.message);
+    navigate("/");
+  } catch (error) {
+    console.error("Registration error:", error);
+    setError("Could not connect to the server.");
   }
+}
 
   return (
     <main className="container py-5">
@@ -115,6 +154,38 @@ function SignUp() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   minLength="8"
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="phone" className="form-label">
+                  Phone number
+                </label>
+
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  className="form-control"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="address" className="form-label">
+                  Delivery address
+                </label>
+
+                <input
+                  id="address"
+                  name="address"
+                  type="text"
+                  className="form-control"
+                  value={formData.address}
+                  onChange={handleChange}
                   required
                 />
               </div>
