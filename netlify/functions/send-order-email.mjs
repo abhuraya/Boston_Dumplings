@@ -83,9 +83,17 @@ export const handler = async (event) => {
         "",
         "Boston Dumplings",
       ].join("\n"),
+      dsn: {
+        id: `boston-dumplings-${Date.now()}`,
+        return: "headers",
+        notify: ["success", "failure", "delay"],
+        recipient: process.env.EMAIL_FROM,
+      },
     });
 
     console.log("Customer email:", {
+      messageId: customerResult.messageId,
+      envelope: customerResult.envelope,
       accepted: customerResult.accepted,
       rejected: customerResult.rejected,
       response: customerResult.response,
@@ -111,9 +119,17 @@ export const handler = async (event) => {
         "",
         `Total: $${Number(total).toFixed(2)}`,
       ].join("\n"),
+      dsn: {
+        id: `boston-dumplings-${Date.now()}`,
+        return: "headers",
+        notify: ["success", "failure", "delay"],
+        recipient: process.env.EMAIL_FROM,
+      },
     });
 
-    console.log("Store email:", {
+   console.log("Store email:", {
+      messageId: storeResult.messageId,
+      envelope: storeResult.envelope,
       accepted: storeResult.accepted,
       rejected: storeResult.rejected,
       response: storeResult.response,
