@@ -33,55 +33,80 @@ export default function Checkout() {
   }
 
   async function handleSubmit(event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  setIsSubmitting(true);
-  setMessage("");
+    setIsSubmitting(true);
+    setMessage("");
 
-  try {
-    const response = await fetch(
-      "/.netlify/functions/send-order-email",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          customer,
-          items: cartItems,
-          total,
-        }),
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        result.message || "The order could not be submitted."
+    try {
+      const orderResponse = await fetch(
+        "http://localhost:5000/api/orders",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customer,
+            items: cartItems,
+          }),
+        }
       );
-    }
+
+      const savedOrder = await orderResponse.json();
+
+      if (!orderResponse.ok) {
+        throw new Error(
+          savedOrder.message || "The order could not be saved."
+        );
+      }
+
+      const emailResponse = await fetch(
+        "/.netlify/functions/send-order-email",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId: savedOrder.orderId,
+            customer,
+            items: cartItems,
+            total: savedOrder.total,
+          }),
+        }
+      );
+
+      const emailResult = await emailResponse.json();
+
+      if (!emailResponse.ok) {
+        throw new Error(
+          emailResult.message ||
+            "The confirmation email could not be sent."
+        );
+      }
 
       navigate("/order-confirmation", {
         replace: true,
         state: {
+          orderId: savedOrder.orderId,
           customerName: customer.name,
           email: customer.email,
           items: cartItems,
-          total,
+          total: savedOrder.total,
         },
       });
 
       setTimeout(() => {
         clearCart();
       }, 0);
-  } catch (error) {
-    setMessage(error.message);
-  } finally {
-    setIsSubmitting(false);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-}
-
 
   if (cartItems.length === 0) {
     return (

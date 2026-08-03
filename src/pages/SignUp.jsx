@@ -42,6 +42,7 @@ async function handleSubmit(event) {
       "http://localhost:5000/api/auth/register",
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

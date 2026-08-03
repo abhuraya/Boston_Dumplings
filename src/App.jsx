@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Link,
   Outlet,
@@ -15,6 +15,38 @@ function App() {
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
+
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/auth/me",
+          {
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          localStorage.removeItem("user");
+          setUser(null);
+          return;
+        }
+
+        const data = await response.json();
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(data.user)
+        );
+
+        setUser(data.user);
+      } catch (error) {
+        console.error("Session check error:", error);
+      }
+    }
+
+    checkSession();
+  }, []);
 
   function addToCart(product) {
     setCartItems((currentItems) => {
@@ -66,10 +98,32 @@ function App() {
     setCartItems([]);
   }
 
-  function signOut() {
-    localStorage.removeItem("user");
-    setUser(null);
-    navigate("/");
+  async function signOut() {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Sign out failed.");
+        return;
+      }
+
+      localStorage.removeItem("user");
+      setUser(null);
+      navigate("/");
+
+      alert(data.message);
+    } catch (error) {
+      console.error("Sign-out error:", error);
+      alert("Could not connect to the server.");
+    }
   }
 
   return (

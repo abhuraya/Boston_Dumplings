@@ -50,6 +50,22 @@ async function register(req, res) {
       ]
     );
 
+    const token = jwt.sign(
+      { userId: result.insertId },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite:
+        process.env.NODE_ENV === "production"
+          ? "none"
+          : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     return res.status(201).json({
       message: "Account created successfully!",
       user: {
@@ -140,7 +156,59 @@ async function login(req, res) {
   }
 }
 
+function logout(req, res) {
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite:
+      process.env.NODE_ENV === "production"
+        ? "none"
+        : "lax",
+  });
+
+  return res.status(200).json({
+    message: "Signed out successfully!",
+  });
+}
+
+async function getCurrentUser(req, res) {
+  try {
+    const [users] = await pool.execute(
+      `SELECT id, full_name, email, phone, address
+       FROM users
+       WHERE id = ?`,
+      [req.userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        message: "User account not found.",
+      });
+    }
+
+    const user = users[0];
+
+    return res.status(200).json({
+      user: {
+        id: user.id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+      },
+    });
+  } catch (error) {
+    console.error("Current-user error:", error);
+
+    return res.status(500).json({
+      message: "Unable to retrieve the user account.",
+    });
+  }
+}
+
 module.exports = {
   register,
   login,
+  logout,
+  getCurrentUser,
 };
