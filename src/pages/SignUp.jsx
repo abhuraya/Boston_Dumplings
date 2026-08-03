@@ -48,6 +48,8 @@ async function handleSubmit(event) {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
           password: formData.password,
         }),
       }
