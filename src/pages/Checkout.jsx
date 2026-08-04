@@ -1,7 +1,23 @@
 import { useState } from "react";
-import { Link,
-        useNavigate,
-         useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Container,
+  Divider,
+  Stack,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import DeliveryDiningRoundedIcon from "@mui/icons-material/DeliveryDiningRounded";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import { API_BASE_URL } from "../config/api";
 import { executeRecaptcha } from "../lib/recaptcha";
 
@@ -17,7 +33,6 @@ export default function Checkout() {
     notes: "",
   });
   const [orderType, setOrderType] = useState("delivery");
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -54,22 +69,19 @@ export default function Checkout() {
         "send_order_email"
       );
 
-      const orderResponse = await fetch(
-        `${API_BASE_URL}/api/orders`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customer: orderCustomer,
-            items: cartItems,
-            orderType,
-            recaptchaToken: createOrderRecaptchaToken,
-          }),
-        }
-      );
+      const orderResponse = await fetch(`${API_BASE_URL}/api/orders`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer: orderCustomer,
+          items: cartItems,
+          orderType,
+          recaptchaToken: createOrderRecaptchaToken,
+        }),
+      });
 
       const savedOrder = await orderResponse.json();
 
@@ -130,194 +142,216 @@ export default function Checkout() {
 
   if (cartItems.length === 0) {
     return (
-      <main className="container py-5 text-center">
-        <h1>Your cart is empty</h1>
-        <p className="text-muted">
-          Add some dumplings before checking out.
-        </p>
-
-        <Link to="/" className="btn btn-success">
-          Return to menu
-        </Link>
-      </main>
+      <Box component="main" className="soft-grid auth-wrap">
+        <Container maxWidth="sm" sx={{ textAlign: "center" }}>
+          <Typography className="eyebrow">Your order</Typography>
+          <Typography
+            variant="h1"
+            sx={{ mt: 2, fontSize: { xs: "3rem", sm: "4rem" } }}
+          >
+            Your order is empty.
+          </Typography>
+          <Typography sx={{ mt: 2, color: "text.secondary", lineHeight: 1.75 }}>
+            Add a few dumplings before heading to checkout.
+          </Typography>
+          <Button component={Link} to="/" variant="contained" sx={{ mt: 4 }}>
+            Return to menu
+          </Button>
+        </Container>
+      </Box>
     );
   }
 
   return (
-    <main className="container py-5">
-      <div className="row g-4">
-        <section className="col-lg-7">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-4">
-              <h1 className="h3 mb-4">Checkout</h1>
+    <main>
+      <Box className="page-hero">
+        <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
+          <Button
+            component={Link}
+            to="/"
+            startIcon={<ArrowBackRoundedIcon />}
+            sx={{ px: 0, mb: 3 }}
+          >
+            Back to menu
+          </Button>
+          <Typography className="eyebrow">Almost there</Typography>
+          <Typography
+            variant="h1"
+            sx={{ mt: 2, maxWidth: 760, fontSize: { xs: "3.35rem", md: "5.7rem" } }}
+          >
+            Let’s get dinner to you.
+          </Typography>
+          <Typography
+            sx={{ mt: 3, maxWidth: 620, color: "text.secondary", lineHeight: 1.8 }}
+          >
+            Choose pickup or delivery, confirm your details, and we’ll take
+            care of the rest.
+          </Typography>
+        </Container>
+      </Box>
 
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <fieldset>
-                    <legend className="form-label">Order type</legend>
+      <Box sx={{ py: { xs: 8, md: 12 } }}>
+        <Container maxWidth="lg">
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1.35fr) minmax(320px, .65fr)" },
+              gap: { xs: 4, md: 5 },
+              alignItems: "start",
+            }}
+          >
+            <Card component="section">
+              <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
+                <Typography variant="h2" sx={{ fontSize: { xs: "2.25rem", sm: "2.8rem" } }}>
+                  Your details
+                </Typography>
+                <Typography sx={{ mt: 1.5, color: "text.secondary" }}>
+                  We’ll use these to confirm and coordinate your order.
+                </Typography>
 
-                    <div className="d-flex gap-4">
-                      <div className="form-check">
-                        <input
-                          type="radio"
-                          id="delivery"
-                          name="orderType"
-                          className="form-check-input"
-                          value="delivery"
-                          checked={orderType === "delivery"}
-                          onChange={(event) => setOrderType(event.target.value)}
-                        />
-                        <label htmlFor="delivery" className="form-check-label">
-                          Delivery
-                        </label>
-                      </div>
+                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 4 }}>
+                  <Typography fontWeight={800} sx={{ mb: 1.5 }}>
+                    How would you like your order?
+                  </Typography>
+                  <ToggleButtonGroup
+                    value={orderType}
+                    exclusive
+                    fullWidth
+                    onChange={(_event, nextType) => {
+                      if (nextType) setOrderType(nextType);
+                    }}
+                    aria-label="Order type"
+                    sx={{
+                      mb: 3,
+                      "& .MuiToggleButton-root": {
+                        gap: 1,
+                        minHeight: 54,
+                        borderColor: "divider",
+                        textTransform: "none",
+                        fontWeight: 800,
+                      },
+                    }}
+                  >
+                    <ToggleButton value="delivery" aria-label="Delivery">
+                      <DeliveryDiningRoundedIcon /> Delivery
+                    </ToggleButton>
+                    <ToggleButton value="pickup" aria-label="Pickup">
+                      <StorefrontOutlinedIcon /> Pickup
+                    </ToggleButton>
+                  </ToggleButtonGroup>
 
-                      <div className="form-check">
-                        <input
-                          type="radio"
-                          id="pickup"
-                          name="orderType"
-                          className="form-check-input"
-                          value="pickup"
-                          checked={orderType === "pickup"}
-                          onChange={(event) => setOrderType(event.target.value)}
-                        />
-                        <label htmlFor="pickup" className="form-check-label">
-                          Pickup
-                        </label>
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
-
-                <div className="mb-3">
-                  <label htmlFor="name" className="form-label">
-                    Name
-                  </label>
-
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    className="form-control"
-                    value={customer.name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label htmlFor="email" className="form-label">
-                    Email
-                  </label>
-
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="form-control"
-                    value={customer.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label htmlFor="phone" className="form-label">
-                    Phone number
-                  </label>
-
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    className="form-control"
-                    value={customer.phone}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                {orderType === "delivery" && (
-                  <div className="mb-3">
-                    <label htmlFor="address" className="form-label">
-                      Delivery address
-                    </label>
-
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      className="form-control"
-                      value={customer.address}
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                      gap: 2,
+                    }}
+                  >
+                    <TextField
+                      label="Full name"
+                      name="name"
+                      value={customer.name}
                       onChange={handleChange}
                       required
+                      fullWidth
                     />
-                  </div>
-                )}
+                    <TextField
+                      label="Email address"
+                      name="email"
+                      type="email"
+                      value={customer.email}
+                      onChange={handleChange}
+                      required
+                      fullWidth
+                    />
+                    <TextField
+                      label="Phone number"
+                      name="phone"
+                      type="tel"
+                      value={customer.phone}
+                      onChange={handleChange}
+                      required
+                      fullWidth
+                    />
+                    {orderType === "delivery" && (
+                      <TextField
+                        label="Delivery address"
+                        name="address"
+                        value={customer.address}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                      />
+                    )}
+                    <TextField
+                      label="Order notes"
+                      name="notes"
+                      value={customer.notes}
+                      onChange={handleChange}
+                      multiline
+                      minRows={4}
+                      fullWidth
+                      sx={{ gridColumn: "1 / -1" }}
+                    />
+                  </Box>
 
-                <div className="mb-4">
-                  <label htmlFor="notes" className="form-label">
-                    Order notes
-                  </label>
+                  {message && (
+                    <Alert severity="error" sx={{ mt: 2.5 }}>
+                      {message}
+                    </Alert>
+                  )}
 
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    className="form-control"
-                    rows="4"
-                    value={customer.notes}
-                    onChange={handleChange}
-                  />
-                </div>
-              {message && (
-                  <div className="alert alert-danger" role="alert">
-                    {message}
-                  </div>
-                )}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    disabled={isSubmitting}
+                    sx={{ mt: 3 }}
+                    startIcon={
+                      isSubmitting ? (
+                        <CircularProgress size={18} color="inherit" />
+                      ) : null
+                    }
+                  >
+                    {isSubmitting ? "Submitting order…" : "Place order"}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
 
-                <button
-                  type="submit"
-                  className="btn btn-dark w-100"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Submitting order..." : "Place order"}
-                </button>
-              </form>
-            </div>
-          </div>
-        </section>
+            <Card component="aside" className="order-card" sx={{ position: { md: "sticky" }, top: { md: 106 } }}>
+              <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+                <Typography className="eyebrow">Order summary</Typography>
+                <Typography variant="h3" sx={{ mt: 1, fontSize: "2rem" }}>
+                  What you chose
+                </Typography>
 
-        <aside className="col-lg-5">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-4">
-              <h2 className="h4 mb-4">Order summary</h2>
+                <Stack spacing={2} divider={<Divider flexItem />} sx={{ mt: 3 }}>
+                  {cartItems.map((item) => (
+                    <Stack key={item.id} direction="row" justifyContent="space-between" gap={2}>
+                      <Typography color="text.secondary">
+                        {item.name} × {item.quantity}
+                      </Typography>
+                      <Typography fontWeight={800}>
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
 
-              {cartItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="d-flex justify-content-between mb-3"
-                >
-                  <span>
-                    {item.name} × {item.quantity}
-                  </span>
-
-                  <strong>
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </strong>
-                </div>
-              ))}
-
-              <hr />
-
-              <div className="d-flex justify-content-between">
-                <strong>Total</strong>
-                <strong>${total.toFixed(2)}</strong>
-              </div>
-            </div>
-          </div>
-        </aside>
-      </div>
+                <Divider sx={{ my: 3 }} />
+                <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                  <Typography fontWeight={800}>Total</Typography>
+                  <Typography variant="h3" sx={{ fontSize: "1.85rem" }}>
+                    ${total.toFixed(2)}
+                  </Typography>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Box>
+        </Container>
+      </Box>
     </main>
   );
 }

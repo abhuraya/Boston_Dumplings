@@ -1,14 +1,112 @@
-#root {
-  min-height: 100vh;
+:root {
+  --clay: #8f5139;
+  --clay-deep: #603526;
+  --sage: #b8c1af;
+  --cream: #fbf8f2;
+  --paper: #fffdf9;
+  --ink: #302b27;
 }
 
+#root,
 .app-shell {
   min-height: 100vh;
 }
 
-.product-card-image-frame {
-  height: 200px;
-  overflow: hidden;
+.app-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-link {
+  color: inherit;
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.site-header {
+  background: rgba(251, 248, 242, 0.94) !important;
+  border-bottom: 1px solid rgba(78, 63, 53, 0.13);
+  color: var(--ink) !important;
+  backdrop-filter: blur(16px);
+}
+
+.dumpling-mark {
+  position: relative;
+  width: 40px;
+  height: 28px;
+  border: 2px solid var(--clay);
+  border-radius: 24px 24px 11px 11px;
+  transform: rotate(-2deg);
+}
+
+.dumpling-mark::before,
+.dumpling-mark::after {
+  position: absolute;
+  top: 3px;
+  width: 1px;
+  height: 11px;
+  background: var(--clay);
+  content: "";
+  transform-origin: top;
+}
+
+.dumpling-mark::before {
+  left: 13px;
+  transform: rotate(-13deg);
+}
+
+.dumpling-mark::after {
+  right: 13px;
+  transform: rotate(13deg);
+}
+
+.wordmark-title {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.wordmark-subtitle {
+  margin-top: 0.42rem !important;
+  color: #81776e;
+  font-size: 0.54rem !important;
+  letter-spacing: 0.15em !important;
+}
+
+.eyebrow {
+  color: var(--clay-deep);
+  font-size: 0.76rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase;
+}
+
+.hero-banner {
+  min-height: min(740px, calc(100vh - 82px));
+  display: flex;
+  align-items: center;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(251, 248, 242, 0.99) 0%,
+      rgba(251, 248, 242, 0.94) 33%,
+      rgba(251, 248, 242, 0.42) 58%,
+      rgba(251, 248, 242, 0.03) 82%
+    ),
+    url("/boston-dumplings-hero.webp");
+  background-position: center;
+  background-size: cover;
+}
+
+.soft-grid {
+  background-image:
+    radial-gradient(circle at 10% 15%, rgba(232, 211, 199, 0.56), transparent 29%),
+    radial-gradient(circle at 92% 68%, rgba(209, 218, 202, 0.62), transparent 28%);
+}
+
+.section-tint {
+  background: #f0eee7;
 }
 
 .product-card-image {
@@ -16,4 +114,107 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 400ms ease;
+}
+
+.product-card:hover .product-card-image {
+  transform: scale(1.025);
+}
+
+.order-card {
+  border: 1px solid rgba(78, 63, 53, 0.09);
+}
+
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(72px, 10vw, 112px) 0;
+  background:
+    radial-gradient(circle at 86% 20%, rgba(255, 255, 255, 0.76), transparent 23%),
+    linear-gradient(125deg, #e8e7df 0%, #f0ddd4 51%, #e1e6dc 100%);
+}
+
+.page-hero::before,
+.page-hero::after {
+  position: absolute;
+  border-radius: 50%;
+  content: "";
+  opacity: 0.42;
+}
+
+.page-hero::before {
+  top: -100px;
+  right: -60px;
+  width: 250px;
+  height: 250px;
+  background: #dcae96;
+}
+
+.page-hero::after {
+  right: 15%;
+  bottom: -110px;
+  width: 200px;
+  height: 200px;
+  background: #b8c1af;
+}
+
+.auth-wrap {
+  min-height: calc(100vh - 82px);
+  display: grid;
+  align-items: center;
+  padding: clamp(64px, 9vw, 96px) 0;
+}
+
+.site-footer {
+  padding: 56px 0;
+  background: var(--ink);
+  color: #fff8f1;
+}
+
+.footer-muted {
+  margin-top: 8px !important;
+  color: rgba(255, 248, 241, 0.68);
+}
+
+.footer-link {
+  color: #fff8f1 !important;
+}
+
+@media (max-width: 899px) {
+  .hero-banner {
+    min-height: 680px;
+    background-image:
+      linear-gradient(
+        90deg,
+        rgba(251, 248, 242, 0.98) 0%,
+        rgba(251, 248, 242, 0.9) 48%,
+        rgba(251, 248, 242, 0.28) 100%
+      ),
+      url("/boston-dumplings-hero.webp");
+    background-position: 62% center;
+  }
+}
+
+@media (max-width: 599px) {
+  .wordmark-title {
+    font-size: 0.9rem !important;
+  }
+
+  .wordmark-subtitle {
+    display: none;
+  }
+
+  .hero-banner {
+    min-height: 630px;
+    align-items: flex-end;
+    background-image:
+      linear-gradient(
+        0deg,
+        rgba(251, 248, 242, 1) 0%,
+        rgba(251, 248, 242, 0.92) 40%,
+        rgba(251, 248, 242, 0.16) 83%
+      ),
+      url("/boston-dumplings-hero.webp");
+    background-position: 67% center;
+  }
 }
