@@ -6,6 +6,9 @@ export default function OrderConfirmation() {
   const {
     customerName = "Customer",
     email = "",
+    phone = "",
+    smsSent = false,
+    smsMessage = "",
     items = [],
     total = 0,
     orderType = "delivery",
@@ -44,10 +47,23 @@ export default function OrderConfirmation() {
 
           <div className="card-body p-4 p-md-5">
             {email && (
-              <p className="text-muted text-center mb-4">
+              <p className="text-muted text-center mb-2">
                 A confirmation was sent to{" "}
                 <strong className="text-dark">{email}</strong>.
               </p>
+            )}
+
+            {smsSent && phone && (
+              <p className="text-muted text-center mb-4">
+                A text confirmation was also sent to{" "}
+                <strong className="text-dark">{phone}</strong>.
+              </p>
+            )}
+
+            {!smsSent && smsMessage && (
+              <div className="alert alert-warning mb-4" role="status">
+                {smsMessage}
+              </div>
             )}
 
             {items.length > 0 && (
