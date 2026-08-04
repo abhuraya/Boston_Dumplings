@@ -3,6 +3,7 @@ import { Link,
         useNavigate,
          useOutletContext } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
+import { executeRecaptcha } from "../lib/recaptcha";
 
 export default function Checkout() {
   const { cartItems, clearCart, user } = useOutletContext();
@@ -46,6 +47,13 @@ export default function Checkout() {
     };
 
     try {
+      const createOrderRecaptchaToken = await executeRecaptcha(
+        "create_order"
+      );
+      const sendEmailRecaptchaToken = await executeRecaptcha(
+        "send_order_email"
+      );
+
       const orderResponse = await fetch(
         `${API_BASE_URL}/api/orders`,
         {
@@ -58,6 +66,7 @@ export default function Checkout() {
             customer: orderCustomer,
             items: cartItems,
             orderType,
+            recaptchaToken: createOrderRecaptchaToken,
           }),
         }
       );
@@ -83,6 +92,7 @@ export default function Checkout() {
             items: cartItems,
             total: savedOrder.total,
             orderType,
+            recaptchaToken: sendEmailRecaptchaToken,
           }),
         }
       );

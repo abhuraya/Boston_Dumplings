@@ -6,6 +6,10 @@ import {
   methodNotAllowed,
   parseJsonBody,
 } from "./lib/http.mjs";
+import {
+  getClientIp,
+  verifyRecaptcha,
+} from "./lib/recaptcha.mjs";
 
 const PRODUCTS = new Map([
   [1, { name: "Pork Dumplings", priceCents: 1200 }],
@@ -54,6 +58,18 @@ export async function handler(event) {
 
   if (!body) {
     return jsonResponse(400, { message: "Invalid JSON request." });
+  }
+
+  const recaptchaResult = await verifyRecaptcha({
+    token: body.recaptchaToken,
+    expectedAction: "create_order",
+    remoteIp: getClientIp(event),
+  });
+
+  if (!recaptchaResult.ok) {
+    return jsonResponse(recaptchaResult.statusCode, {
+      message: recaptchaResult.message,
+    });
   }
 
   const { customer, orderType } = body;

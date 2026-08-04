@@ -1,4 +1,8 @@
 import nodemailer from "nodemailer";
+import {
+  getClientIp,
+  verifyRecaptcha,
+} from "./lib/recaptcha.mjs";
 
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -11,9 +15,31 @@ export const handler = async (event) => {
   }
 
   try {
-    const { customer, items, total, orderType } = JSON.parse(
+    const {
+      customer,
+      items,
+      total,
+      orderType,
+      recaptchaToken,
+    } = JSON.parse(
       event.body || "{}"
     );
+
+    const recaptchaResult = await verifyRecaptcha({
+      token: recaptchaToken,
+      expectedAction: "send_order_email",
+      remoteIp: getClientIp(event),
+    });
+
+    if (!recaptchaResult.ok) {
+      return {
+        statusCode: recaptchaResult.statusCode,
+        body: JSON.stringify({
+          message: recaptchaResult.message,
+        }),
+      };
+    }
+
     const isDelivery = orderType === "delivery";
 
     if (
