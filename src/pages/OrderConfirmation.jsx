@@ -1,9 +1,22 @@
 import { Link, useLocation } from "react-router-dom";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Divider,
+  Stack,
+  Typography,
+} from "@mui/material";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 
 export default function OrderConfirmation() {
   const location = useLocation();
 
   const {
+    orderId = "",
     customerName = "Customer",
     email = "",
     items = [],
@@ -13,93 +26,113 @@ export default function OrderConfirmation() {
   const isPickup = orderType === "pickup";
 
   return (
-    <main className="min-vh-100 bg-light py-5">
-      <div className="container">
-        <section
-          className="card border-0 shadow-sm mx-auto overflow-hidden"
-          style={{ maxWidth: "720px" }}
-        >
-          <div className="bg-success text-white text-center p-5">
-            <div
-              className="d-inline-flex align-items-center justify-content-center bg-white text-success rounded-circle mb-4"
-              style={{
-                width: "72px",
-                height: "72px",
-                fontSize: "2rem",
-                fontWeight: "700",
+    <Box component="main" className="soft-grid" sx={{ py: { xs: 7, md: 11 } }}>
+      <Container maxWidth="md">
+        <Card sx={{ overflow: "hidden" }}>
+          <Box
+            sx={{
+              py: { xs: 6, md: 7 },
+              px: 3,
+              textAlign: "center",
+              bgcolor: "secondary.dark",
+              color: "#fffdf9",
+            }}
+          >
+            <Box
+              sx={{
+                width: 72,
+                height: 72,
+                mx: "auto",
+                display: "grid",
+                placeItems: "center",
+                borderRadius: "50%",
+                bgcolor: "rgba(255,255,255,.9)",
+                color: "secondary.dark",
               }}
-              aria-hidden="true"
             >
-              ✓
-            </div>
-
-            <h1 className="display-6 fw-bold mb-2">
-              Order confirmed!
-            </h1>
-
-            <p className="mb-0 opacity-75">
+              <CheckRoundedIcon sx={{ fontSize: 38 }} />
+            </Box>
+            <Typography
+              variant="h1"
+              sx={{ mt: 3, fontSize: { xs: "3rem", sm: "4.2rem" } }}
+            >
+              Order confirmed.
+            </Typography>
+            <Typography sx={{ mt: 2, color: "rgba(255,255,255,.76)" }}>
               Thanks, {customerName}. We received your order.
-            </p>
-          </div>
+            </Typography>
+          </Box>
 
-          <div className="card-body p-4 p-md-5">
+          <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
             {email && (
-              <p className="text-muted text-center mb-4">
-                A confirmation was sent to{" "}
-                <strong className="text-dark">{email}</strong>.
-              </p>
+              <Typography sx={{ textAlign: "center", color: "text.secondary" }}>
+                A confirmation was sent to <strong>{email}</strong>.
+              </Typography>
             )}
 
             {items.length > 0 && (
-              <div className="border rounded-4 p-4 mb-4">
-                <h2 className="h5 mb-4">Order summary</h2>
+              <Box
+                sx={{
+                  mt: 4,
+                  p: { xs: 2.5, sm: 3.5 },
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 3,
+                  bgcolor: "rgba(255,255,255,.5)",
+                }}
+              >
+                <Stack direction="row" justifyContent="space-between" gap={2}>
+                  <Box>
+                    <Typography className="eyebrow">Order summary</Typography>
+                    {orderId && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Order #{orderId}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Typography fontWeight={800}>
+                    {isPickup ? "Pickup" : "Delivery"}
+                  </Typography>
+                </Stack>
 
-                <div className="d-flex justify-content-between gap-3 mb-3">
-                  <span>Order type</span>
-                  <strong>{isPickup ? "Pickup" : "Delivery"}</strong>
-                </div>
+                <Divider sx={{ my: 3 }} />
+                <Stack spacing={2} divider={<Divider flexItem />}>
+                  {items.map((item) => (
+                    <Stack key={item.id} direction="row" justifyContent="space-between" gap={2}>
+                      <Typography color="text.secondary">
+                        {item.name} × {item.quantity}
+                      </Typography>
+                      <Typography fontWeight={800}>
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
 
-                <hr />
-
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="d-flex justify-content-between gap-3 mb-3"
-                  >
-                    <span>
-                      {item.name} × {item.quantity}
-                    </span>
-
-                    <strong>
-                      $
-                      {(item.price * item.quantity).toFixed(2)}
-                    </strong>
-                  </div>
-                ))}
-
-                <hr />
-
-                <div className="d-flex justify-content-between fs-5">
-                  <strong>Total</strong>
-                  <strong>${Number(total).toFixed(2)}</strong>
-                </div>
-              </div>
+                <Divider sx={{ my: 3 }} />
+                <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                  <Typography fontWeight={800}>Total</Typography>
+                  <Typography variant="h3" sx={{ fontSize: "1.8rem" }}>
+                    ${Number(total).toFixed(2)}
+                  </Typography>
+                </Stack>
+              </Box>
             )}
 
-            <div className="alert alert-success" role="status">
+            <Alert severity="success" sx={{ mt: 3 }}>
               {isPickup
                 ? "We will contact you when your order is ready for pickup."
                 : "We will contact you with an update about preparation and delivery."}
-            </div>
+            </Alert>
 
-            <div className="text-center mt-4">
-              <Link to="/" className="btn btn-dark px-4">
+            <Box sx={{ mt: 4, textAlign: "center" }}>
+              <Button component={Link} to="/" variant="contained">
                 Return to menu
-              </Link>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 }

@@ -1,9 +1,16 @@
 import { useState } from "react";
-import { 
-  Link,
-  useNavigate,
-  useOutletContext,
- } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  TextField,
+  Typography,
+} from "@mui/material";
+import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import { API_BASE_URL } from "../config/api";
 
 function SignUp() {
@@ -17,8 +24,8 @@ function SignUp() {
     password: "",
     confirmPassword: "",
   });
-
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -29,19 +36,19 @@ function SignUp() {
     }));
   }
 
-async function handleSubmit(event) {
-  event.preventDefault();
-  setError("");
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setError("");
 
-  if (formData.password !== formData.confirmPassword) {
-    setError("The passwords do not match.");
-    return;
-  }
+    if (formData.password !== formData.confirmPassword) {
+      setError("The passwords do not match.");
+      return;
+    }
 
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/auth/register`,
-      {
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -54,166 +61,158 @@ async function handleSubmit(event) {
           address: formData.address,
           password: formData.password,
         }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Account creation failed.");
+        return;
       }
-    );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      setError(data.message || "Account creation failed.");
-      return;
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+      navigate("/");
+    } catch (requestError) {
+      console.error("Registration error:", requestError);
+      setError("Could not connect to the server.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    localStorage.setItem("user", JSON.stringify(data.user));
-    setUser(data.user);
-
-    alert(data.message);
-    navigate("/");
-  } catch (error) {
-    console.error("Registration error:", error);
-    setError("Could not connect to the server.");
   }
-}
 
   return (
-    <main className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-7 col-lg-5">
-          <div className="card border-0 shadow p-4">
-            <h1 className="text-center mb-2">Create an Account</h1>
+    <Box component="main" className="soft-grid auth-wrap">
+      <Container maxWidth="md">
+        <Card>
+          <CardContent sx={{ p: { xs: 3.5, sm: 6 } }}>
+            <Box
+              sx={{
+                width: 54,
+                height: 54,
+                display: "grid",
+                placeItems: "center",
+                borderRadius: "50%",
+                bgcolor: "#e5e9df",
+                color: "secondary.dark",
+              }}
+            >
+              <PersonAddAltOutlinedIcon />
+            </Box>
+            <Typography
+              variant="h1"
+              sx={{ mt: 3, fontSize: { xs: "3rem", sm: "3.9rem" } }}
+            >
+              Make ordering easier.
+            </Typography>
+            <Typography sx={{ mt: 1.5, color: "text.secondary", lineHeight: 1.7 }}>
+              Create an account to save your contact and delivery information.
+            </Typography>
 
-            <p className="text-center text-muted mb-4">
-              Save your information and make ordering easier.
-            </p>
-
-            {error && (
-              <div className="alert alert-danger">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label htmlFor="name" className="form-label">
-                  Full name
-                </label>
-
-                <input
-                  id="name"
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 4 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                  gap: 2,
+                }}
+              >
+                <TextField
+                  label="Full name"
                   name="name"
-                  type="text"
-                  className="form-control"
+                  autoComplete="name"
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  fullWidth
                 />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="email" className="form-label">
-                  Email address
-                </label>
-
-                <input
-                  id="email"
+                <TextField
+                  label="Email address"
                   name="email"
                   type="email"
-                  className="form-control"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  fullWidth
                 />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="password" className="form-label">
-                  Password
-                </label>
-
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  className="form-control"
-                  value={formData.password}
-                  onChange={handleChange}
-                  minLength="8"
-                  required
-                />
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="confirmPassword"
-                  className="form-label"
-                >
-                  Confirm password
-                </label>
-
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  className="form-control"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  minLength="8"
-                  required
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="phone" className="form-label">
-                  Phone number
-                </label>
-
-                <input
-                  id="phone"
+                <TextField
+                  label="Phone number"
                   name="phone"
                   type="tel"
-                  className="form-control"
+                  autoComplete="tel"
                   value={formData.phone}
                   onChange={handleChange}
                   required
+                  fullWidth
                 />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="address" className="form-label">
-                  Delivery address
-                </label>
-
-                <input
-                  id="address"
+                <TextField
+                  label="Delivery address"
                   name="address"
-                  type="text"
-                  className="form-control"
+                  autoComplete="street-address"
                   value={formData.address}
                   onChange={handleChange}
                   required
+                  fullWidth
                 />
-              </div>
+                <TextField
+                  label="Password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  inputProps={{ minLength: 8 }}
+                  helperText="Use at least 8 characters"
+                  required
+                  fullWidth
+                />
+                <TextField
+                  label="Confirm password"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  inputProps={{ minLength: 8 }}
+                  required
+                  fullWidth
+                />
+              </Box>
 
-              <button
+              {error && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {error}
+                </Alert>
+              )}
+
+              <Button
                 type="submit"
-                className="btn btn-danger w-100"
+                variant="contained"
+                size="large"
+                fullWidth
+                disabled={isSubmitting}
+                sx={{ mt: 3 }}
               >
-                Create Account
-              </button>
-            </form>
+                {isSubmitting ? "Creating account…" : "Create account"}
+              </Button>
+            </Box>
 
-            <p className="text-center mt-4 mb-0">
+            <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
               Already have an account?{" "}
-              <Link to="/signin">Sign in</Link>
-            </p>
-
-            <p className="text-center mt-2 mb-0">
-              <Link to="/">Return to the menu</Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </main>
+              <Box component={Link} to="/signin" sx={{ color: "primary.dark", fontWeight: 800 }}>
+                Sign in
+              </Box>
+            </Typography>
+            <Typography sx={{ mt: 1.5, textAlign: "center" }}>
+              <Box component={Link} to="/" sx={{ color: "primary.dark", fontWeight: 800 }}>
+                Return to the menu
+              </Box>
+            </Typography>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 }
 

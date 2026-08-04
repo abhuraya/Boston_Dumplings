@@ -4,8 +4,8 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
+import { CssBaseline, ThemeProvider } from "@mui/material";
 
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 
 import App from "./App.jsx";
@@ -14,6 +14,7 @@ import Checkout from "./pages/Checkout.jsx";
 import OrderConfirmation from "./pages/OrderConfirmation.jsx";
 import SignIn from "./pages/SignIn.jsx";
 import SignUp from "./pages/SignUp.jsx";
+import theme from "./theme.js";
 
 const router = createBrowserRouter([
   {
@@ -48,6 +49,9 @@ ReactDOM.createRoot(
   document.getElementById("root")
 ).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </React.StrictMode>
 );
