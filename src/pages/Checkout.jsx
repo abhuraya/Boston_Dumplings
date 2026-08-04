@@ -70,7 +70,7 @@ export default function Checkout() {
         );
       }
 
-      const emailResponse = await fetch(
+      const confirmationResponse = await fetch(
         "/.netlify/functions/send-order-email",
         {
           method: "POST",
@@ -87,11 +87,11 @@ export default function Checkout() {
         }
       );
 
-      const emailResult = await emailResponse.json();
+      const confirmationResult = await confirmationResponse.json();
 
-      if (!emailResponse.ok) {
+      if (!confirmationResponse.ok) {
         throw new Error(
-          emailResult.message ||
+          confirmationResult.message ||
             "The confirmation email could not be sent."
         );
       }
@@ -102,6 +102,9 @@ export default function Checkout() {
           orderId: savedOrder.orderId,
           customerName: customer.name,
           email: customer.email,
+          phone: orderCustomer.phone,
+          smsSent: confirmationResult.smsSent,
+          smsMessage: confirmationResult.smsMessage,
           items: cartItems,
           total: savedOrder.total,
           orderType,
@@ -224,8 +227,15 @@ export default function Checkout() {
                     className="form-control"
                     value={customer.phone}
                     onChange={handleChange}
+                    placeholder="(617) 555-0123"
+                    autoComplete="tel"
                     required
                   />
+                  <div className="form-text">
+                    By placing your order, you agree to receive one order
+                    confirmation text from Boston Dumplings. Message and data
+                    rates may apply. Reply STOP to opt out.
+                  </div>
                 </div>
 
                 {orderType === "delivery" && (
