@@ -11,13 +11,17 @@ export const handler = async (event) => {
   }
 
   try {
-    const { customer, items, total } = JSON.parse(event.body || "{}");
+    const { customer, items, total, orderType } = JSON.parse(
+      event.body || "{}"
+    );
+    const isDelivery = orderType === "delivery";
 
     if (
       !customer?.name ||
       !customer?.email ||
       !customer?.phone ||
-      !customer?.address ||
+      !["delivery", "pickup"].includes(orderType) ||
+      (isDelivery && !customer?.address) ||
       !Array.isArray(items) ||
       items.length === 0
     ) {
@@ -59,6 +63,12 @@ export const handler = async (event) => {
         return `${item.name} × ${item.quantity} — $${itemTotal.toFixed(2)}`;
       })
       .join("\n");
+    const orderTypeLabel = isDelivery ? "Delivery" : "Pickup";
+    const fulfillmentLines = [`Order type: ${orderTypeLabel}`];
+
+    if (isDelivery) {
+      fulfillmentLines.push(`Delivery address: ${customer.address}`);
+    }
 
     const customerResult = await transporter.sendMail({
       from: `"Boston Dumplings" <${process.env.EMAIL_FROM}>`,
@@ -73,7 +83,7 @@ export const handler = async (event) => {
         itemLines,
         "",
         `Total: $${Number(total).toFixed(2)}`,
-        `Delivery address: ${customer.address}`,
+        ...fulfillmentLines,
         `Phone: ${customer.phone}`,
         customer.notes
           ? `Order notes: ${customer.notes}`
@@ -110,7 +120,7 @@ export const handler = async (event) => {
         `Customer: ${customer.name}`,
         `Email: ${customer.email}`,
         `Phone: ${customer.phone}`,
-        `Address: ${customer.address}`,
+        ...fulfillmentLines,
         customer.notes
           ? `Notes: ${customer.notes}`
           : "Notes: None",

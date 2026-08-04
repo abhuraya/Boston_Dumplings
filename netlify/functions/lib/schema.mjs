@@ -26,7 +26,8 @@ async function initializeSchema() {
       customer_name VARCHAR(255) NOT NULL,
       customer_email VARCHAR(255) NOT NULL,
       customer_phone VARCHAR(50) NOT NULL,
-      delivery_address VARCHAR(500) NOT NULL,
+      order_type VARCHAR(20) NOT NULL DEFAULT 'delivery',
+      delivery_address VARCHAR(500) NULL,
       notes TEXT NULL,
       total DECIMAL(10, 2) NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -37,6 +38,27 @@ async function initializeSchema() {
         ON DELETE SET NULL
     ) ENGINE=InnoDB
   `);
+
+  await pool.query(`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS order_type VARCHAR(20) NOT NULL DEFAULT 'delivery'
+    AFTER customer_phone
+  `);
+
+  const [deliveryAddressColumns] = await pool.query(`
+    SELECT COLUMN_NAME, IS_NULLABLE
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'orders'
+      AND COLUMN_NAME = 'delivery_address'
+  `);
+
+  if (deliveryAddressColumns[0]?.IS_NULLABLE === "NO") {
+    await pool.query(`
+      ALTER TABLE orders
+      MODIFY COLUMN delivery_address VARCHAR(500) NULL
+    `);
+  }
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS order_items (

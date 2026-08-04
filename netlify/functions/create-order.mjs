@@ -14,6 +14,7 @@ const PRODUCTS = new Map([
 ]);
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ORDER_TYPES = new Set(["delivery", "pickup"]);
 
 function validateAndNormalizeItems(items) {
   if (!Array.isArray(items) || items.length === 0) {
@@ -55,21 +56,34 @@ export async function handler(event) {
     return jsonResponse(400, { message: "Invalid JSON request." });
   }
 
-  const { customer } = body;
+  const { customer, orderType } = body;
   const items = validateAndNormalizeItems(body.items);
 
   if (
     typeof customer?.name !== "string" ||
     typeof customer?.email !== "string" ||
     typeof customer?.phone !== "string" ||
-    typeof customer?.address !== "string" ||
     !customer.name.trim() ||
     !customer.email.trim() ||
-    !customer.phone.trim() ||
-    !customer.address.trim()
+    !customer.phone.trim()
   ) {
     return jsonResponse(400, {
       message: "Complete customer information is required.",
+    });
+  }
+
+  if (!ORDER_TYPES.has(orderType)) {
+    return jsonResponse(400, {
+      message: "Choose delivery or pickup.",
+    });
+  }
+
+  if (
+    orderType === "delivery" &&
+    (typeof customer.address !== "string" || !customer.address.trim())
+  ) {
+    return jsonResponse(400, {
+      message: "A delivery address is required for delivery orders.",
     });
   }
 
@@ -85,7 +99,8 @@ export async function handler(event) {
     name: customer.name.trim(),
     email: customer.email.trim().toLowerCase(),
     phone: customer.phone.trim(),
-    address: customer.address.trim(),
+    address:
+      orderType === "delivery" ? customer.address.trim() : null,
     notes: customer.notes?.trim() || null,
   };
 
@@ -97,7 +112,7 @@ export async function handler(event) {
     cleanCustomer.name.length > 255 ||
     cleanCustomer.email.length > 255 ||
     cleanCustomer.phone.length > 50 ||
-    cleanCustomer.address.length > 500 ||
+    (cleanCustomer.address && cleanCustomer.address.length > 500) ||
     (cleanCustomer.notes && cleanCustomer.notes.length > 5000)
   ) {
     return jsonResponse(400, { message: "One or more fields are too long." });
@@ -133,15 +148,17 @@ export async function handler(event) {
         customer_name,
         customer_email,
         customer_phone,
+        order_type,
         delivery_address,
         notes,
         total
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         cleanCustomer.name,
         cleanCustomer.email,
         cleanCustomer.phone,
+        orderType,
         cleanCustomer.address,
         cleanCustomer.notes,
         (totalCents / 100).toFixed(2),

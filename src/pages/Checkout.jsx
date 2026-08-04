@@ -15,6 +15,7 @@ export default function Checkout() {
     address: user?.address || "",
     notes: "",
   });
+  const [orderType, setOrderType] = useState("delivery");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
@@ -39,6 +40,11 @@ export default function Checkout() {
     setIsSubmitting(true);
     setMessage("");
 
+    const orderCustomer = {
+      ...customer,
+      address: orderType === "delivery" ? customer.address.trim() : "",
+    };
+
     try {
       const orderResponse = await fetch(
         `${API_BASE_URL}/api/orders`,
@@ -49,8 +55,9 @@ export default function Checkout() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            customer,
+            customer: orderCustomer,
             items: cartItems,
+            orderType,
           }),
         }
       );
@@ -72,9 +79,10 @@ export default function Checkout() {
           },
           body: JSON.stringify({
             orderId: savedOrder.orderId,
-            customer,
+            customer: orderCustomer,
             items: cartItems,
             total: savedOrder.total,
+            orderType,
           }),
         }
       );
@@ -96,6 +104,7 @@ export default function Checkout() {
           email: customer.email,
           items: cartItems,
           total: savedOrder.total,
+          orderType,
         },
       });
 
@@ -133,6 +142,44 @@ export default function Checkout() {
               <h1 className="h3 mb-4">Checkout</h1>
 
               <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <fieldset>
+                    <legend className="form-label">Order type</legend>
+
+                    <div className="d-flex gap-4">
+                      <div className="form-check">
+                        <input
+                          type="radio"
+                          id="delivery"
+                          name="orderType"
+                          className="form-check-input"
+                          value="delivery"
+                          checked={orderType === "delivery"}
+                          onChange={(event) => setOrderType(event.target.value)}
+                        />
+                        <label htmlFor="delivery" className="form-check-label">
+                          Delivery
+                        </label>
+                      </div>
+
+                      <div className="form-check">
+                        <input
+                          type="radio"
+                          id="pickup"
+                          name="orderType"
+                          className="form-check-input"
+                          value="pickup"
+                          checked={orderType === "pickup"}
+                          onChange={(event) => setOrderType(event.target.value)}
+                        />
+                        <label htmlFor="pickup" className="form-check-label">
+                          Pickup
+                        </label>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+
                 <div className="mb-3">
                   <label htmlFor="name" className="form-label">
                     Name
@@ -181,21 +228,23 @@ export default function Checkout() {
                   />
                 </div>
 
-                <div className="mb-3">
-                  <label htmlFor="address" className="form-label">
-                    Delivery address
-                  </label>
+                {orderType === "delivery" && (
+                  <div className="mb-3">
+                    <label htmlFor="address" className="form-label">
+                      Delivery address
+                    </label>
 
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    className="form-control"
-                    value={customer.address}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      className="form-control"
+                      value={customer.address}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                )}
 
                 <div className="mb-4">
                   <label htmlFor="notes" className="form-label">

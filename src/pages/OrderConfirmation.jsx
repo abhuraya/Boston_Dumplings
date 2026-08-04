@@ -8,7 +8,9 @@ export default function OrderConfirmation() {
     email = "",
     items = [],
     total = 0,
+    orderType = "delivery",
   } = location.state || {};
+  const isPickup = orderType === "pickup";
 
   return (
     <main className="min-vh-100 bg-light py-5">
@@ -52,6 +54,13 @@ export default function OrderConfirmation() {
               <div className="border rounded-4 p-4 mb-4">
                 <h2 className="h5 mb-4">Order summary</h2>
 
+                <div className="d-flex justify-content-between gap-3 mb-3">
+                  <span>Order type</span>
+                  <strong>{isPickup ? "Pickup" : "Delivery"}</strong>
+                </div>
+
+                <hr />
+
                 {items.map((item) => (
                   <div
                     key={item.id}
@@ -78,8 +87,9 @@ export default function OrderConfirmation() {
             )}
 
             <div className="alert alert-success" role="status">
-              We will contact you with an update about preparation and
-              delivery.
+              {isPickup
+                ? "We will contact you when your order is ready for pickup."
+                : "We will contact you with an update about preparation and delivery."}
             </div>
 
             <div className="text-center mt-4">
