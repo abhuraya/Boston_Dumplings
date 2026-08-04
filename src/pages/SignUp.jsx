@@ -4,6 +4,7 @@ import {
   useNavigate,
   useOutletContext,
  } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ async function handleSubmit(event) {
 
   try {
     const response = await fetch(
-      "http://localhost:5000/api/auth/register",
+      `${API_BASE_URL}/api/auth/register`,
       {
         method: "POST",
         credentials: "include",

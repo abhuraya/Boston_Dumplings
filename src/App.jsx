@@ -5,6 +5,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import "./App.css";
+import { API_BASE_URL } from "./config/api";
 
 function App() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ function App() {
     async function checkSession() {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/auth/me",
+          `${API_BASE_URL}/api/auth/me`,
           {
             credentials: "include",
           }
@@ -101,7 +102,7 @@ function App() {
   async function signOut() {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/logout",
+        `${API_BASE_URL}/api/auth/logout`,
         {
           method: "POST",
           credentials: "include",

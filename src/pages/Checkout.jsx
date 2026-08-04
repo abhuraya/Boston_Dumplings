@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link,
         useNavigate,
          useOutletContext } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 export default function Checkout() {
   const { cartItems, clearCart, user } = useOutletContext();
@@ -40,7 +41,7 @@ export default function Checkout() {
 
     try {
       const orderResponse = await fetch(
-        "http://localhost:5000/api/orders",
+        `${API_BASE_URL}/api/orders`,
         {
           method: "POST",
           credentials: "include",

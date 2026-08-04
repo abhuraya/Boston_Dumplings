@@ -4,17 +4,32 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const pool = require("./config/db");
+const initializeDatabase = require("./config/initDb");
 const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 
 const app = express();
 
+const allowedOrigins = new Set(
+  [
+    "http://localhost:5173",
+    "http://localhost:8888",
+    "https://bostondumplings.com",
+    "https://www.bostondumplings.com",
+    process.env.FRONTEND_URL,
+  ].filter(Boolean)
+);
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:8888",
-    ],
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin is not allowed by CORS."));
+    },
     credentials: true,
   })
 );
@@ -43,6 +58,17 @@ app.get("/api/health", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  try {
+    await initializeDatabase();
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Server startup error:", error);
+    process.exit(1);
+  }
+}
+
+startServer();

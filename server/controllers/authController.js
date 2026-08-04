@@ -98,7 +98,7 @@ async function login(req, res) {
     const cleanEmail = email.trim().toLowerCase();
 
     const [users] = await pool.execute(
-      `SELECT id, full_name, email, password_hash
+      `SELECT id, full_name, email, phone, address, password_hash
        FROM users
        WHERE email = ?`,
       [cleanEmail]
@@ -145,6 +145,8 @@ async function login(req, res) {
         id: user.id,
         name: user.full_name,
         email: user.email,
+        phone: user.phone,
+        address: user.address,
       },
     });
   } catch (error) {
