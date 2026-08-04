@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { sendOrderConfirmationSms } from "./lib/sms.mjs";
 
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -11,7 +12,7 @@ export const handler = async (event) => {
   }
 
   try {
-    const { customer, items, total, orderType } = JSON.parse(
+    const { orderId, customer, items, total, orderType } = JSON.parse(
       event.body || "{}"
     );
     const isDelivery = orderType === "delivery";
@@ -152,10 +153,47 @@ export const handler = async (event) => {
       throw new Error("One or more email recipients were rejected.");
     }
 
+    let smsResult;
+
+    try {
+      smsResult = await sendOrderConfirmationSms({
+        phone: customer.phone,
+        orderId,
+        orderType,
+        total,
+      });
+
+      if (smsResult.sent) {
+        console.log("SMS queued:", {
+          messageSid: smsResult.sid,
+          status: smsResult.status,
+          recipientLastFour: smsResult.recipientLastFour,
+        });
+      } else {
+        console.warn("SMS not sent:", {
+          reason: smsResult.reason,
+        });
+      }
+    } catch (smsError) {
+      smsResult = {
+        sent: false,
+        reason: "provider-error",
+      };
+
+      console.error("Order SMS error:", {
+        message: smsError.message,
+        code: smsError.code,
+      });
+    }
+
     return {
       statusCode: 200,
       body: JSON.stringify({
         message: "Order submitted successfully.",
+        smsSent: smsResult.sent,
+        smsMessage: smsResult.sent
+          ? "A text confirmation was sent."
+          : "The text confirmation could not be sent, but your order is confirmed.",
       }),
     };
   } catch (error) {
