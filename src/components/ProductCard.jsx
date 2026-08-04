@@ -1,5 +1,6 @@
 import dumplingImage from "../../assets/Image-_3_.png";
 
+
 export default function ProductCard({ product, onAddToCart }) {
   return (
     <article className="card h-100 border-0 shadow-sm">
