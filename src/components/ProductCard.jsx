@@ -1,12 +1,17 @@
+import dumplingImage from "../../assets/Image-_3_.png";
+
 export default function ProductCard({ product, onAddToCart }) {
   return (
     <article className="card h-100 border-0 shadow-sm">
       <div className="card-body d-flex flex-column">
         <div
-          className="rounded-4 bg-light mb-3 d-flex align-items-center justify-content-center"
-          style={{ minHeight: "180px" }}
+          className="product-card-image-frame rounded-4 bg-dark mb-3 d-flex align-items-center justify-content-center"
         >
-          <span className="text-muted">Product image</span>
+          <img
+            className="product-card-image"
+            src={dumplingImage}
+            alt={`${product.name} illustration`}
+          />
         </div>
 
         <h2 className="h5">{product.name}</h2>

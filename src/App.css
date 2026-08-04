@@ -5,3 +5,15 @@
 .app-shell {
   min-height: 100vh;
 }
+
+.product-card-image-frame {
+  min-height: 180px;
+  overflow: hidden;
+}
+
+.product-card-image {
+  width: 78%;
+  max-height: 150px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
